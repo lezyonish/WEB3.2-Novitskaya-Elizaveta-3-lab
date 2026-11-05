@@ -1,0 +1,17 @@
+
+.app {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+    margin-top: 20px;
+}
+
+.cell {
+    aspect-ratio: 1;
+    border: 1px solid gray;
+}
