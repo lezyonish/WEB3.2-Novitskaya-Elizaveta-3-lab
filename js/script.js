@@ -58,6 +58,70 @@ function renderBoard() {
     }
 }
 
+function getCellIndex(line, position, direction) {
+    if (direction === 'left') {
+        return line * 4 + position;
+    }
+
+    if (direction === 'right') {
+        return line * 4 + (3 - position);
+    }
+
+    if (direction === 'up') {
+        return position * 4 + line;
+    }
+
+    return (3 - position) * 4 + line;
+}
+
+function moveTiles(direction) {
+    const newCells = new Array(16).fill(0);
+
+    for (let i = 0; i < 4; i++) {
+        const line = [];
+
+        for (let j = 0; j < 4; j++) {
+            const index = getCellIndex(i, j, direction);
+            line.push(cells[index]);
+        }
+
+        const movedLine = line.filter(function(value) {
+            return value !== 0;
+        });
+
+        while (movedLine.length < 4) {
+            movedLine.push(0);
+        }
+
+        for (let j = 0; j < 4; j++) {
+            const index = getCellIndex(i, j, direction);
+            newCells[index] = movedLine[j];
+        }
+    }
+
+    cells = newCells;
+    renderBoard();
+}
+
+document.addEventListener('keydown', function(event) {
+    let direction = '';
+
+    if (event.key === 'ArrowLeft') {
+        direction = 'left';
+    } else if (event.key === 'ArrowRight') {
+        direction = 'right';
+    } else if (event.key === 'ArrowUp') {
+        direction = 'up';
+    } else if (event.key === 'ArrowDown') {
+        direction = 'down';
+    }
+
+    if (direction) {
+        event.preventDefault();
+        moveTiles(direction);
+    }
+});
+
 const startTiles = Math.floor(Math.random() * 3) + 1;
 
 for (let i = 0; i < startTiles; i++) {
