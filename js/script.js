@@ -25,6 +25,10 @@ undoButton.type = 'button';
 undoButton.textContent = 'Отменить ход';
 undoButton.disabled = true;
 
+const leaderboardButton = document.createElement('button');
+leaderboardButton.type = 'button';
+leaderboardButton.textContent = 'Таблица лидеров';
+
 const boardContainer = document.createElement('div');
 boardContainer.className = 'board-container';
 
@@ -38,8 +42,58 @@ gameOverMessage.hidden = true;
 
 boardContainer.append(board, gameOverMessage);
 
-app.append(title, scoreBlock, restartButton, undoButton, boardContainer);
-document.body.append(app);
+const leaderboardDialog = document.createElement('dialog');
+leaderboardDialog.className = 'leaderboard-dialog';
+leaderboardDialog.setAttribute('aria-labelledby', 'leaderboard-title');
+
+const leaderboardTitle = document.createElement('h2');
+leaderboardTitle.id = 'leaderboard-title';
+leaderboardTitle.textContent = 'Таблица лидеров';
+
+const closeLeaderboardButton = document.createElement('button');
+closeLeaderboardButton.type = 'button';
+closeLeaderboardButton.textContent = 'Закрыть';
+
+const leaderboardTable = document.createElement('table');
+leaderboardTable.className = 'leaderboard-table';
+
+const tableHead = document.createElement('thead');
+const headerRow = document.createElement('tr');
+
+const columnNames = ['Имя игрока', 'Очки', 'Дата сохранения'];
+
+columnNames.forEach(function(name) {
+    const heading = document.createElement('th');
+    heading.textContent = name;
+    heading.scope = 'col';
+    headerRow.append(heading);
+});
+
+tableHead.append(headerRow);
+
+const tableBody = document.createElement('tbody');
+leaderboardTable.append(tableHead, tableBody);
+
+const emptyRecordsMessage = document.createElement('p');
+emptyRecordsMessage.textContent = 'Рекордов пока нет';
+
+leaderboardDialog.append(
+    leaderboardTitle,
+    closeLeaderboardButton,
+    leaderboardTable,
+    emptyRecordsMessage
+);
+
+app.append(
+    title,
+    scoreBlock,
+    restartButton,
+    undoButton,
+    leaderboardButton,
+    boardContainer
+);
+
+document.body.append(app, leaderboardDialog);
 
 let cells = new Array(16).fill(0);
 let score = 0;
@@ -215,7 +269,7 @@ function checkGameOver() {
 }
 
 function moveTiles(direction) {
-    if (gameOver) {
+    if (gameOver || leaderboardDialog.open) {
         return;
     }
 
@@ -306,6 +360,10 @@ function startNewGame() {
 }
 
 document.addEventListener('keydown', function(event) {
+    if (leaderboardDialog.open) {
+        return;
+    }
+
     let direction = '';
 
     if (event.key === 'ArrowLeft') {
@@ -326,6 +384,14 @@ document.addEventListener('keydown', function(event) {
 
 restartButton.addEventListener('click', startNewGame);
 undoButton.addEventListener('click', undoMove);
+
+leaderboardButton.addEventListener('click', function() {
+    leaderboardDialog.showModal();
+});
+
+closeLeaderboardButton.addEventListener('click', function() {
+    leaderboardDialog.close();
+});
 
 if (!loadGame()) {
     startNewGame();
