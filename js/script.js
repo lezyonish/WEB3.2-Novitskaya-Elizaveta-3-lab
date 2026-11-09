@@ -16,14 +16,25 @@ scoreValue.textContent = '0';
 
 scoreBlock.append(scoreText, scoreValue);
 
+const boardContainer = document.createElement('div');
+boardContainer.className = 'board-container';
+
 const board = document.createElement('div');
 board.className = 'board';
 
-app.append(title, scoreBlock, board);
+const gameOverMessage = document.createElement('div');
+gameOverMessage.className = 'game-over-message';
+gameOverMessage.textContent = 'Игра окончена';
+gameOverMessage.hidden = true;
+
+boardContainer.append(board, gameOverMessage);
+
+app.append(title, scoreBlock, boardContainer);
 document.body.append(app);
 
 let cells = new Array(16).fill(0);
 let score = 0;
+let gameOver = false;
 
 function addRandomTile() {
     const emptyCells = [];
@@ -107,7 +118,40 @@ function mergeLine(line) {
     };
 }
 
+function isGameOver() {
+    if (cells.includes(0)) {
+        return false;
+    }
+
+    for (let row = 0; row < 4; row++) {
+        for (let col = 0; col < 4; col++) {
+            const index = row * 4 + col;
+
+            if (col < 3 && cells[index] === cells[index + 1]) {
+                return false;
+            }
+
+            if (row < 3 && cells[index] === cells[index + 4]) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+function checkGameOver() {
+    if (isGameOver()) {
+        gameOver = true;
+        gameOverMessage.hidden = false;
+    }
+}
+
 function moveTiles(direction) {
+    if (gameOver) {
+        return;
+    }
+
     const newCells = new Array(16).fill(0);
     let earnedPoints = 0;
 
@@ -147,6 +191,7 @@ function moveTiles(direction) {
 
     scoreValue.textContent = score;
     renderBoard();
+    checkGameOver();
 }
 
 document.addEventListener('keydown', function(event) {

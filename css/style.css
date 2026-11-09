@@ -4,14 +4,34 @@
     margin: 0 auto;
 }
 
+.board-container {
+    position: relative;
+    margin-top: 20px;
+}
+
 .board {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 5px;
-    margin-top: 20px;
 }
 
 .cell {
     aspect-ratio: 1;
     border: 1px solid gray;
+}
+
+.game-over-message {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.9);
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.game-over-message[hidden] {
+    display: none;
 }
