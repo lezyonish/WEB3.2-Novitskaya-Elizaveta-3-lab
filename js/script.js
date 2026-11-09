@@ -20,6 +20,11 @@ const restartButton = document.createElement('button');
 restartButton.type = 'button';
 restartButton.textContent = 'Начать заново';
 
+const undoButton = document.createElement('button');
+undoButton.type = 'button';
+undoButton.textContent = 'Отменить ход';
+undoButton.disabled = true;
+
 const boardContainer = document.createElement('div');
 boardContainer.className = 'board-container';
 
@@ -33,12 +38,13 @@ gameOverMessage.hidden = true;
 
 boardContainer.append(board, gameOverMessage);
 
-app.append(title, scoreBlock, restartButton, boardContainer);
+app.append(title, scoreBlock, restartButton, undoButton, boardContainer);
 document.body.append(app);
 
 let cells = new Array(16).fill(0);
 let score = 0;
 let gameOver = false;
+let previousState = null;
 
 function addRandomTile() {
     const emptyCells = [];
@@ -148,6 +154,7 @@ function checkGameOver() {
     if (isGameOver()) {
         gameOver = true;
         gameOverMessage.hidden = false;
+        undoButton.disabled = true;
     }
 }
 
@@ -184,6 +191,11 @@ function moveTiles(direction) {
         return;
     }
 
+    previousState = {
+        cells: cells.slice(),
+        score: score
+    };
+
     cells = newCells;
     score += earnedPoints;
 
@@ -194,17 +206,36 @@ function moveTiles(direction) {
     }
 
     scoreValue.textContent = score;
+    undoButton.disabled = false;
+
     renderBoard();
     checkGameOver();
+}
+
+function undoMove() {
+    if (previousState === null || gameOver) {
+        return;
+    }
+
+    cells = previousState.cells.slice();
+    score = previousState.score;
+    previousState = null;
+
+    scoreValue.textContent = score;
+    undoButton.disabled = true;
+
+    renderBoard();
 }
 
 function startNewGame() {
     cells = new Array(16).fill(0);
     score = 0;
     gameOver = false;
+    previousState = null;
 
     scoreValue.textContent = '0';
     gameOverMessage.hidden = true;
+    undoButton.disabled = true;
 
     const startTiles = Math.floor(Math.random() * 3) + 1;
 
@@ -235,5 +266,6 @@ document.addEventListener('keydown', function(event) {
 });
 
 restartButton.addEventListener('click', startNewGame);
+undoButton.addEventListener('click', undoMove);
 
 startNewGame();
