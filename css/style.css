@@ -29,16 +29,46 @@
     position: absolute;
     inset: 0;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: rgba(255, 255, 255, 0.9);
-    font-size: 24px;
-    font-weight: bold;
+    gap: 15px;
+    padding: 15px;
+    background-color: rgba(255, 255, 255, 0.95);
     text-align: center;
 }
 
 .game-over-message[hidden] {
     display: none;
+}
+
+.game-over-message h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.record-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 250px;
+}
+
+.record-form[hidden] {
+    display: none;
+}
+
+.record-form input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 8px;
+}
+
+.record-form button,
+.game-over-message > button {
+    padding: 8px 12px;
 }
 
 .leaderboard-dialog {
@@ -80,6 +110,10 @@
     text-align: center;
 }
 
+.leaderboard-dialog p[hidden] {
+    display: none;
+}
+
 @media (max-width: 600px) {
     .leaderboard-dialog {
         padding: 12px;
@@ -89,5 +123,9 @@
     .leaderboard-table td {
         padding: 8px 4px;
         font-size: 12px;
+    }
+
+    .game-over-message h2 {
+        font-size: 20px;
     }
 }

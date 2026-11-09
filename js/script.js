@@ -37,8 +37,43 @@ board.className = 'board';
 
 const gameOverMessage = document.createElement('div');
 gameOverMessage.className = 'game-over-message';
-gameOverMessage.textContent = 'Игра окончена';
 gameOverMessage.hidden = true;
+
+const gameOverTitle = document.createElement('h2');
+gameOverTitle.textContent = 'Игра окончена';
+
+const recordForm = document.createElement('form');
+recordForm.className = 'record-form';
+
+const playerNameLabel = document.createElement('label');
+playerNameLabel.htmlFor = 'player-name';
+playerNameLabel.textContent = 'Введите ваше имя';
+
+const playerNameInput = document.createElement('input');
+playerNameInput.type = 'text';
+playerNameInput.id = 'player-name';
+playerNameInput.maxLength = 30;
+playerNameInput.required = true;
+
+const saveRecordButton = document.createElement('button');
+saveRecordButton.type = 'submit';
+saveRecordButton.textContent = 'Сохранить результат';
+
+recordForm.append(
+    playerNameLabel,
+    playerNameInput,
+    saveRecordButton
+);
+
+const gameOverRestartButton = document.createElement('button');
+gameOverRestartButton.type = 'button';
+gameOverRestartButton.textContent = 'Начать заново';
+
+gameOverMessage.append(
+    gameOverTitle,
+    recordForm,
+    gameOverRestartButton
+);
 
 boardContainer.append(board, gameOverMessage);
 
@@ -72,6 +107,7 @@ columnNames.forEach(function(name) {
 tableHead.append(headerRow);
 
 const tableBody = document.createElement('tbody');
+
 leaderboardTable.append(tableHead, tableBody);
 
 const emptyRecordsMessage = document.createElement('p');
@@ -99,13 +135,16 @@ let cells = new Array(16).fill(0);
 let score = 0;
 let gameOver = false;
 let previousState = null;
+let recordSaved = false;
+let records = [];
 
 function saveGame() {
     const gameData = {
         cells: cells,
         score: score,
         gameOver: gameOver,
-        previousState: previousState
+        previousState: previousState,
+        recordSaved: recordSaved
     };
 
     localStorage.setItem('game2048', JSON.stringify(gameData));
@@ -132,6 +171,7 @@ function loadGame() {
         cells = gameData.cells;
         score = gameData.score;
         gameOver = gameData.gameOver === true || isGameOver();
+        recordSaved = gameOver && gameData.recordSaved === true;
 
         if (
             gameData.previousState &&
@@ -145,15 +185,103 @@ function loadGame() {
         }
 
         scoreValue.textContent = score;
-        gameOverMessage.hidden = !gameOver;
         undoButton.disabled = gameOver || previousState === null;
 
         renderBoard();
+        updateGameOver();
 
         return true;
     } catch (error) {
         return false;
     }
+}
+
+function loadRecords() {
+    try {
+        const savedRecords = JSON.parse(
+            localStorage.getItem('game2048Leaderboard')
+        );
+
+        if (Array.isArray(savedRecords)) {
+            records = savedRecords.filter(function(record) {
+                return record &&
+                    typeof record.name === 'string' &&
+                    typeof record.score === 'number' &&
+                    typeof record.date === 'string';
+            });
+
+            records.sort(function(a, b) {
+                return b.score - a.score;
+            });
+
+            records = records.slice(0, 10);
+        }
+    } catch (error) {
+        records = [];
+    }
+}
+
+function renderLeaderboard() {
+    tableBody.replaceChildren();
+
+    records.forEach(function(record) {
+        const row = document.createElement('tr');
+
+        const nameCell = document.createElement('td');
+        nameCell.textContent = record.name;
+
+        const scoreCell = document.createElement('td');
+        scoreCell.textContent = record.score;
+
+        const dateCell = document.createElement('td');
+        dateCell.textContent = record.date;
+
+        row.append(nameCell, scoreCell, dateCell);
+        tableBody.append(row);
+    });
+
+    emptyRecordsMessage.hidden = records.length > 0;
+}
+
+function saveRecord(event) {
+    event.preventDefault();
+
+    if (!gameOver || recordSaved) {
+        return;
+    }
+
+    const playerName = playerNameInput.value.trim();
+
+    if (!playerName) {
+        playerNameInput.value = '';
+        playerNameInput.reportValidity();
+        return;
+    }
+
+    const newRecord = {
+        name: playerName,
+        score: score,
+        date: new Date().toLocaleDateString('ru-RU')
+    };
+
+    records.push(newRecord);
+
+    records.sort(function(a, b) {
+        return b.score - a.score;
+    });
+
+    records = records.slice(0, 10);
+
+    localStorage.setItem(
+        'game2048Leaderboard',
+        JSON.stringify(records)
+    );
+
+    recordSaved = true;
+
+    updateGameOver();
+    renderLeaderboard();
+    saveGame();
 }
 
 function addRandomTile() {
@@ -260,11 +388,25 @@ function isGameOver() {
     return true;
 }
 
+function updateGameOver() {
+    gameOverMessage.hidden = !gameOver;
+
+    if (gameOver) {
+        if (recordSaved) {
+            gameOverTitle.textContent = 'Ваш рекорд сохранен';
+            recordForm.hidden = true;
+        } else {
+            gameOverTitle.textContent = 'Игра окончена';
+            recordForm.hidden = false;
+        }
+    }
+}
+
 function checkGameOver() {
     if (isGameOver()) {
         gameOver = true;
-        gameOverMessage.hidden = false;
         undoButton.disabled = true;
+        updateGameOver();
     }
 }
 
@@ -324,7 +466,7 @@ function moveTiles(direction) {
 }
 
 function undoMove() {
-    if (previousState === null || gameOver) {
+    if (previousState === null || gameOver || leaderboardDialog.open) {
         return;
     }
 
@@ -344,9 +486,10 @@ function startNewGame() {
     score = 0;
     gameOver = false;
     previousState = null;
+    recordSaved = false;
 
     scoreValue.textContent = '0';
-    gameOverMessage.hidden = true;
+    playerNameInput.value = '';
     undoButton.disabled = true;
 
     const startTiles = Math.floor(Math.random() * 3) + 1;
@@ -355,12 +498,13 @@ function startNewGame() {
         addRandomTile();
     }
 
+    updateGameOver();
     renderBoard();
     saveGame();
 }
 
 document.addEventListener('keydown', function(event) {
-    if (leaderboardDialog.open) {
+    if (leaderboardDialog.open || gameOver) {
         return;
     }
 
@@ -383,15 +527,21 @@ document.addEventListener('keydown', function(event) {
 });
 
 restartButton.addEventListener('click', startNewGame);
+gameOverRestartButton.addEventListener('click', startNewGame);
 undoButton.addEventListener('click', undoMove);
+recordForm.addEventListener('submit', saveRecord);
 
 leaderboardButton.addEventListener('click', function() {
+    renderLeaderboard();
     leaderboardDialog.showModal();
 });
 
 closeLeaderboardButton.addEventListener('click', function() {
     leaderboardDialog.close();
 });
+
+loadRecords();
+renderLeaderboard();
 
 if (!loadGame()) {
     startNewGame();
