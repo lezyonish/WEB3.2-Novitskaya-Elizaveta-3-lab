@@ -16,6 +16,10 @@ scoreValue.textContent = '0';
 
 scoreBlock.append(scoreText, scoreValue);
 
+const restartButton = document.createElement('button');
+restartButton.type = 'button';
+restartButton.textContent = 'Начать заново';
+
 const boardContainer = document.createElement('div');
 boardContainer.className = 'board-container';
 
@@ -29,7 +33,7 @@ gameOverMessage.hidden = true;
 
 boardContainer.append(board, gameOverMessage);
 
-app.append(title, scoreBlock, boardContainer);
+app.append(title, scoreBlock, restartButton, boardContainer);
 document.body.append(app);
 
 let cells = new Array(16).fill(0);
@@ -194,6 +198,23 @@ function moveTiles(direction) {
     checkGameOver();
 }
 
+function startNewGame() {
+    cells = new Array(16).fill(0);
+    score = 0;
+    gameOver = false;
+
+    scoreValue.textContent = '0';
+    gameOverMessage.hidden = true;
+
+    const startTiles = Math.floor(Math.random() * 3) + 1;
+
+    for (let i = 0; i < startTiles; i++) {
+        addRandomTile();
+    }
+
+    renderBoard();
+}
+
 document.addEventListener('keydown', function(event) {
     let direction = '';
 
@@ -213,10 +234,6 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
-const startTiles = Math.floor(Math.random() * 3) + 1;
+restartButton.addEventListener('click', startNewGame);
 
-for (let i = 0; i < startTiles; i++) {
-    addRandomTile();
-}
-
-renderBoard();
+startNewGame();
