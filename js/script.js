@@ -139,6 +139,12 @@ function moveTiles(direction) {
     cells = newCells;
     score += earnedPoints;
 
+    const newTilesCount = Math.floor(Math.random() * 2) + 1;
+
+    for (let i = 0; i < newTilesCount; i++) {
+        addRandomTile();
+    }
+
     scoreValue.textContent = score;
     renderBoard();
 }
