@@ -77,6 +77,52 @@ gameOverMessage.append(
 
 boardContainer.append(board, gameOverMessage);
 
+const mobileControls = document.createElement('div');
+mobileControls.className = 'mobile-controls';
+mobileControls.setAttribute('role', 'group');
+mobileControls.setAttribute('aria-label', 'Управление игрой');
+
+const controlButtons = [
+    {
+        direction: 'up',
+        text: '↑',
+        className: 'control-up',
+        label: 'Вверх'
+    },
+    {
+        direction: 'left',
+        text: '←',
+        className: 'control-left',
+        label: 'Влево'
+    },
+    {
+        direction: 'down',
+        text: '↓',
+        className: 'control-down',
+        label: 'Вниз'
+    },
+    {
+        direction: 'right',
+        text: '→',
+        className: 'control-right',
+        label: 'Вправо'
+    }
+];
+
+controlButtons.forEach(function(control) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = control.className;
+    button.textContent = control.text;
+    button.setAttribute('aria-label', control.label);
+
+    button.addEventListener('click', function() {
+        moveTiles(control.direction);
+    });
+
+    mobileControls.append(button);
+});
+
 const leaderboardDialog = document.createElement('dialog');
 leaderboardDialog.className = 'leaderboard-dialog';
 leaderboardDialog.setAttribute('aria-labelledby', 'leaderboard-title');
@@ -126,7 +172,8 @@ app.append(
     restartButton,
     undoButton,
     leaderboardButton,
-    boardContainer
+    boardContainer,
+    mobileControls
 );
 
 document.body.append(app, leaderboardDialog);
@@ -137,6 +184,10 @@ let gameOver = false;
 let previousState = null;
 let recordSaved = false;
 let records = [];
+
+function updateMobileControls() {
+    mobileControls.hidden = gameOver || leaderboardDialog.open;
+}
 
 function saveGame() {
     const gameData = {
@@ -400,6 +451,8 @@ function updateGameOver() {
             recordForm.hidden = false;
         }
     }
+
+    updateMobileControls();
 }
 
 function checkGameOver() {
@@ -534,10 +587,15 @@ recordForm.addEventListener('submit', saveRecord);
 leaderboardButton.addEventListener('click', function() {
     renderLeaderboard();
     leaderboardDialog.showModal();
+    updateMobileControls();
 });
 
 closeLeaderboardButton.addEventListener('click', function() {
     leaderboardDialog.close();
+});
+
+leaderboardDialog.addEventListener('close', function() {
+    updateMobileControls();
 });
 
 loadRecords();

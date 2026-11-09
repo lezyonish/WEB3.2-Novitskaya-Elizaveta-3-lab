@@ -114,6 +114,54 @@
     display: none;
 }
 
+.mobile-controls {
+    display: none;
+}
+
+.mobile-controls[hidden] {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .mobile-controls:not([hidden]) {
+        display: grid;
+        grid-template-columns: repeat(3, 64px);
+        grid-template-rows: repeat(3, 52px);
+        justify-content: center;
+        gap: 6px;
+        margin-top: 18px;
+    }
+
+    .mobile-controls button {
+        border: 1px solid gray;
+        background-color: white;
+        color: black;
+        font-size: 24px;
+        cursor: pointer;
+        touch-action: manipulation;
+    }
+
+    .control-up {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    .control-left {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    .control-right {
+        grid-column: 3;
+        grid-row: 2;
+    }
+
+    .control-down {
+        grid-column: 2;
+        grid-row: 3;
+    }
+}
+
 @media (max-width: 600px) {
     .leaderboard-dialog {
         padding: 12px;
