@@ -23,6 +23,7 @@ app.append(title, scoreBlock, board);
 document.body.append(app);
 
 let cells = new Array(16).fill(0);
+let score = 0;
 
 function addRandomTile() {
     const emptyCells = [];
@@ -74,8 +75,41 @@ function getCellIndex(line, position, direction) {
     return (3 - position) * 4 + line;
 }
 
+function mergeLine(line) {
+    const mergedLine = line.filter(function(value) {
+        return value !== 0;
+    });
+
+    let earnedPoints = 0;
+    let i = 0;
+
+    while (i < mergedLine.length - 1) {
+        if (mergedLine[i] === mergedLine[i + 1]) {
+            mergedLine[i] *= 2;
+            earnedPoints += mergedLine[i];
+            mergedLine.splice(i + 1, 1);
+
+            if (i > 0) {
+                i--;
+            }
+        } else {
+            i++;
+        }
+    }
+
+    while (mergedLine.length < 4) {
+        mergedLine.push(0);
+    }
+
+    return {
+        line: mergedLine,
+        points: earnedPoints
+    };
+}
+
 function moveTiles(direction) {
     const newCells = new Array(16).fill(0);
+    let earnedPoints = 0;
 
     for (let i = 0; i < 4; i++) {
         const line = [];
@@ -85,21 +119,27 @@ function moveTiles(direction) {
             line.push(cells[index]);
         }
 
-        const movedLine = line.filter(function(value) {
-            return value !== 0;
-        });
-
-        while (movedLine.length < 4) {
-            movedLine.push(0);
-        }
+        const result = mergeLine(line);
+        earnedPoints += result.points;
 
         for (let j = 0; j < 4; j++) {
             const index = getCellIndex(i, j, direction);
-            newCells[index] = movedLine[j];
+            newCells[index] = result.line[j];
         }
     }
 
+    const hasChanged = newCells.some(function(value, index) {
+        return value !== cells[index];
+    });
+
+    if (!hasChanged) {
+        return;
+    }
+
     cells = newCells;
+    score += earnedPoints;
+
+    scoreValue.textContent = score;
     renderBoard();
 }
 
