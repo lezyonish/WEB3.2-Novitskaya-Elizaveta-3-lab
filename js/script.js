@@ -46,6 +46,62 @@ let score = 0;
 let gameOver = false;
 let previousState = null;
 
+function saveGame() {
+    const gameData = {
+        cells: cells,
+        score: score,
+        gameOver: gameOver,
+        previousState: previousState
+    };
+
+    localStorage.setItem('game2048', JSON.stringify(gameData));
+}
+
+function loadGame() {
+    const savedData = localStorage.getItem('game2048');
+
+    if (!savedData) {
+        return false;
+    }
+
+    try {
+        const gameData = JSON.parse(savedData);
+
+        if (!Array.isArray(gameData.cells) || gameData.cells.length !== 16) {
+            return false;
+        }
+
+        if (typeof gameData.score !== 'number') {
+            return false;
+        }
+
+        cells = gameData.cells;
+        score = gameData.score;
+        gameOver = gameData.gameOver === true || isGameOver();
+
+        if (
+            gameData.previousState &&
+            Array.isArray(gameData.previousState.cells) &&
+            gameData.previousState.cells.length === 16 &&
+            typeof gameData.previousState.score === 'number'
+        ) {
+            previousState = gameData.previousState;
+        } else {
+            previousState = null;
+        }
+
+        scoreValue.textContent = score;
+        gameOverMessage.hidden = !gameOver;
+        undoButton.disabled = gameOver || previousState === null;
+
+        renderBoard();
+
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
+
 function addRandomTile() {
     const emptyCells = [];
 
@@ -210,6 +266,7 @@ function moveTiles(direction) {
 
     renderBoard();
     checkGameOver();
+    saveGame();
 }
 
 function undoMove() {
@@ -225,6 +282,7 @@ function undoMove() {
     undoButton.disabled = true;
 
     renderBoard();
+    saveGame();
 }
 
 function startNewGame() {
@@ -244,6 +302,7 @@ function startNewGame() {
     }
 
     renderBoard();
+    saveGame();
 }
 
 document.addEventListener('keydown', function(event) {
@@ -268,4 +327,6 @@ document.addEventListener('keydown', function(event) {
 restartButton.addEventListener('click', startNewGame);
 undoButton.addEventListener('click', undoMove);
 
-startNewGame();
+if (!loadGame()) {
+    startNewGame();
+}
